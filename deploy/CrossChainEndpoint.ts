@@ -8,6 +8,8 @@ const deployCrossChainEndpoint: DeployFunction = async (hre: HardhatRuntimeEnvir
   const { deployer } = await getNamedAccounts();
   const chainId = parseInt(await hre.getChainId(), 10);
 
+  console.log('deploying CrossChainEndpoint on chain', chainId);
+
   const conf = config[chainId];
   const args = [conf.MessageBus, conf.MarketNG];
   const deployResult = await deploy('CrossChainEndpoint', {
@@ -15,7 +17,7 @@ const deployCrossChainEndpoint: DeployFunction = async (hre: HardhatRuntimeEnvir
     args: args
   });
 
-  await verify(hre, deployResult, args);
+  // await verify(hre, deployResult, args);
 };
 
 export const verify = async (hre: HardhatRuntimeEnvironment, deployResult: DeployResult, args?: any) => {
@@ -24,3 +26,7 @@ export const verify = async (hre: HardhatRuntimeEnvironment, deployResult: Deplo
     constructorArguments: args
   });
 };
+
+deployCrossChainEndpoint.tags = ['CrossChainEndpoint'];
+deployCrossChainEndpoint.dependencies = [];
+export default deployCrossChainEndpoint;

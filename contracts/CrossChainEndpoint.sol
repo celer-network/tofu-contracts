@@ -10,7 +10,7 @@ import "./interfaces/IMarketNG.sol";
 import "./lib/MessageReceiverApp.sol";
 import "./lib/MessageSenderLib.sol";
 
-contract MarketNGCrosschain is MessageReceiverApp {
+contract CrossChainEndpoint is MessageReceiverApp {
     using SafeERC20 for IERC20;
 
     uint8 public constant TOKEN_MINT = 0; // mint token (do anything)
@@ -34,8 +34,11 @@ contract MarketNGCrosschain is MessageReceiverApp {
         Order order;
     }
 
-    constructor(address marketNG_) {
-        marketNG = marketNG_;
+    event MarketNGUpdated(address oldMarketNG, address newMarketNG);
+
+    constructor(address _messageBus, address _marketNG) {
+        messageBus = _messageBus;
+        marketNG = _marketNG;
     }
 
     /**
@@ -155,5 +158,10 @@ contract MarketNGCrosschain is MessageReceiverApp {
         PurchaseRequest memory request = abi.decode((_message), (PurchaseRequest));
         IERC20(_token).safeTransfer(request.sender, _amount);
         return ExecutionStatus.Success;
+    }
+
+    function setMarketNG(address _marketNG) public onlyOwner {
+        emit MarketNGUpdated(marketNG, _marketNG);
+        marketNG = _marketNG;
     }
 }

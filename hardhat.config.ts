@@ -24,20 +24,15 @@ const config: HardhatUserConfig = {
       default: 0
     }
   },
-  etherscan: {
-    apiKey: {
-      goerli: process.env.ETHERSCAN_API_KEY as string
-    }
-  },
   defaultNetwork: 'hardhat',
   networks: {
     goerli: {
       url: process.env.GOERLI_ENDPOINT,
-      accounts: [`0x${process.env.GOERLI_PRIVATE_KEY}`]
+      accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
     },
     arbGoerli: {
       url: process.env.ARB_GOERLI_ENDPOINT,
-      accounts: [`0x${process.env.ARB_GOERLI_PRIVATE_KEY}`]
+      accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
     }
   }
 };
