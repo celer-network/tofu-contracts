@@ -39,15 +39,18 @@ contract MarketNGCrosschain is MessageReceiverApp {
     }
 
     /**
-     * @param _chainId the destination chain to purchase NFT
+     * @notice initiates a cross-chain call the the _chainId chain
+     * @param _dstChainId the destination chain to purchase NFT on
+     * @param _dstCrossChainEndpoint the CrossChainEndpoint contract on the destination chain
      * @param _receiver the address on destination chain to receive target NFT
      * @param _srcToken The address of the transfer token.
      * @param _amount The amount of the transfer
      * @param _maxSlippage The max slippage accepted, given as percentage in point (pip). Eg. 5000 means 0.5%.
-     * @param _order input order
+     * @param _order input order, accquired from the Tofu backend server
      */
     function purchase(
-        uint64 _chainId,
+        uint64 _dstChainId,
+        address _dstCrossChainEndpoint,
         address _receiver,
         address _srcToken,
         uint32 _amount,
@@ -59,10 +62,10 @@ contract MarketNGCrosschain is MessageReceiverApp {
         IERC20(_srcToken).safeTransferFrom(msg.sender, address(this), _amount);
         bytes memory message = abi.encode(PurchaseRequest(_receiver, msg.sender, _order));
         MessageSenderLib.sendMessageWithTransfer(
-            _receiver,
+            _dstCrossChainEndpoint,
             _srcToken,
             _order.detail.price,
-            _chainId,
+            _dstChainId,
             nonce,
             _maxSlippage,
             message,
@@ -73,7 +76,7 @@ contract MarketNGCrosschain is MessageReceiverApp {
     }
 
     /**
-     * @notice called by executor
+     * @notice called by executor on the dst chain to execute the NFT purchase
      * @param _dstToken the token used on destination chain
      * @param _amount The amount of the transfer
      * @param _message packed PurchaseRequest
