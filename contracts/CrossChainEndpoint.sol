@@ -56,7 +56,7 @@ contract CrossChainEndpoint is MessageReceiverApp {
         address _dstCrossChainEndpoint,
         address _receiver,
         address _srcToken,
-        uint32 _amount,
+        uint256 _amount,
         uint32 _maxSlippage,
         Order memory _order
     ) external payable {

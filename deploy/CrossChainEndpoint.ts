@@ -13,11 +13,12 @@ const deployCrossChainEndpoint: DeployFunction = async (hre: HardhatRuntimeEnvir
   const conf = config[chainId];
   const args = [conf.MessageBus, conf.MarketNG];
   const deployResult = await deploy('CrossChainEndpoint', {
+    log: true,
     from: deployer,
     args: args
   });
 
-  // await verify(hre, deployResult, args);
+  await verify(hre, deployResult, args);
 };
 
 export const verify = async (hre: HardhatRuntimeEnvironment, deployResult: DeployResult, args?: any) => {
