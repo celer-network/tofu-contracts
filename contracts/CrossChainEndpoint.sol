@@ -36,6 +36,8 @@ contract CrossChainEndpoint is MessageReceiverApp {
 
     event MarketNGUpdated(address oldMarketNG, address newMarketNG);
 
+    event PurchaseCompleted(uint256 id); // Detail.id
+
     constructor(address _messageBus, address _marketNG) {
         messageBus = _messageBus;
         marketNG = _marketNG;
@@ -120,6 +122,12 @@ contract CrossChainEndpoint is MessageReceiverApp {
                 _amount - request.order.detail.price
             );
         }
+        emit PurchaseCompleted(request.order.detail.id);
+        return ExecutionStatus.Success;
+    }
+
+    function refundAndDone(address _token, address _receiver, uint256 _amount) private returns (ExecutionStatus) {
+        IERC20(_token).transfer(_receiver, _amount);
         return ExecutionStatus.Success;
     }
 
@@ -163,5 +171,10 @@ contract CrossChainEndpoint is MessageReceiverApp {
     function setMarketNG(address _marketNG) public onlyOwner {
         emit MarketNGUpdated(marketNG, _marketNG);
         marketNG = _marketNG;
+    }
+
+    function onERC721Received(address, address, uint256, bytes memory) external pure returns (bytes4) {
+        // only needed this for receiving NFTs.
+        return 0x150b7a02;
     }
 }

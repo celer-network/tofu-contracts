@@ -34,6 +34,11 @@ const config: HardhatUserConfig = {
       url: process.env.ARB_GOERLI_ENDPOINT,
       accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
     }
+  },
+  etherscan: {
+    apiKey: {
+      goerli: process.env.ETHERSCAN_API_KEY || ''
+    }
   }
 };
 
