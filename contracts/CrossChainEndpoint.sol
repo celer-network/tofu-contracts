@@ -83,20 +83,20 @@ contract CrossChainEndpoint is MessageReceiverApp {
 
     /**
      * @notice called by executor on the dst chain to execute the NFT purchase
-     * @param _dstToken the token used on destination chain
+     * @param dstToken the token used on destination chain
      * @param amount The amount of the transfer
      * @param message packed PurchaseRequest
      */
     function executeMessageWithTransfer(
         address, // _sender
-        address _dstToken,
+        address dstToken,
         uint256 amount,
         uint64, //_srcChainId
         bytes memory message,
         address // executor
     ) external payable override onlyMessageBus returns (ExecutionStatus) {
         PurchaseRequest memory request = abi.decode((message), (PurchaseRequest));
-        require(_dstToken == address(request.order.detail.currency), "invalid token type");
+        require(dstToken == address(request.order.detail.currency), "invalid token type");
         IERC20(request.order.detail.currency).safeApprove(marketNG, request.order.detail.price);
         IMarketNG(marketNG).run(
             request.order.intent,
