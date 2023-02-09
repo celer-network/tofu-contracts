@@ -37,6 +37,7 @@ contract CrossChainEndpoint is MessageReceiverApp {
     event MarketNGUpdated(address oldMarketNG, address newMarketNG);
 
     event PurchaseCompleted(uint256 id); // Detail.id
+    event Refunded(uint64 chainId, uint256 id, address token, uint256 amount);
 
     constructor(address _messageBus, address _marketNG) {
         messageBus = _messageBus;
@@ -49,7 +50,7 @@ contract CrossChainEndpoint is MessageReceiverApp {
      * @param _dstCrossChainEndpoint the CrossChainEndpoint contract on the destination chain
      * @param _receiver the address on destination chain to receive target NFT
      * @param _srcToken The address of the transfer token.
-     * @param _amount The amount of the transfer
+     * @param amount The amount of the transfer
      * @param _maxSlippage The max slippage accepted, given as percentage in point (pip). Eg. 5000 means 0.5%.
      * @param _order input order, accquired from the Tofu backend server
      */
@@ -58,13 +59,13 @@ contract CrossChainEndpoint is MessageReceiverApp {
         address _dstCrossChainEndpoint,
         address _receiver,
         address _srcToken,
-        uint256 _amount,
+        uint256 amount,
         uint32 _maxSlippage,
         Order memory _order
     ) external payable {
         nonce += 1;
-        require(_amount >= _order.detail.price, "invalid amount");
-        IERC20(_srcToken).safeTransferFrom(msg.sender, address(this), _amount);
+        require(amount >= _order.detail.price, "invalid amount");
+        IERC20(_srcToken).safeTransferFrom(msg.sender, address(this), amount);
         bytes memory message = abi.encode(PurchaseRequest(_receiver, msg.sender, _order));
         MessageSenderLib.sendMessageWithTransfer(
             _dstCrossChainEndpoint,
@@ -83,20 +84,20 @@ contract CrossChainEndpoint is MessageReceiverApp {
     /**
      * @notice called by executor on the dst chain to execute the NFT purchase
      * @param _dstToken the token used on destination chain
-     * @param _amount The amount of the transfer
-     * @param _message packed PurchaseRequest
+     * @param amount The amount of the transfer
+     * @param message packed PurchaseRequest
      */
     function executeMessageWithTransfer(
         address, // _sender
         address _dstToken,
-        uint256 _amount,
+        uint256 amount,
         uint64, //_srcChainId
-        bytes memory _message,
+        bytes memory message,
         address // executor
     ) external payable override onlyMessageBus returns (ExecutionStatus) {
-        PurchaseRequest memory request = abi.decode((_message), (PurchaseRequest));
+        PurchaseRequest memory request = abi.decode((message), (PurchaseRequest));
         require(_dstToken == address(request.order.detail.currency), "invalid token type");
-        IERC20(request.order.detail.currency).approve(marketNG, request.order.detail.price);
+        IERC20(request.order.detail.currency).safeApprove(marketNG, request.order.detail.price);
         IMarketNG(marketNG).run(
             request.order.intent,
             request.order.detail,
@@ -115,56 +116,57 @@ contract CrossChainEndpoint is MessageReceiverApp {
             }
         }
         // refund extra token
-        if (_amount > request.order.detail.price) {
-            IERC20(request.order.detail.currency).transferFrom(
+        if (amount > request.order.detail.price) {
+            IERC20(request.order.detail.currency).safeTransferFrom(
                 address(this),
                 request.receiver,
-                _amount - request.order.detail.price
+                amount - request.order.detail.price
             );
         }
         emit PurchaseCompleted(request.order.detail.id);
         return ExecutionStatus.Success;
     }
 
-    function refundAndDone(address _token, address _receiver, uint256 _amount) private returns (ExecutionStatus) {
-        IERC20(_token).transfer(_receiver, _amount);
+    function refundAndDone(address token, address _receiver, uint256 amount) private returns (ExecutionStatus) {
+        IERC20(token).safeTransfer(_receiver, amount);
         return ExecutionStatus.Success;
     }
 
     /**
      * @notice called only if handleMessageWithTransfer was reverted (etc, NFT sold out)
-     * @param _token the token used on destination chain
-     * @param _amount The amount of the transfer
-     * @param _message packed PurchaseRequest
+     * @param token the token used on destination chain
+     * @param amount The amount of the transfer
+     * @param message packed PurchaseRequest
      */
     function executeMessageWithTransferFallback(
         address, //_sender
-        address _token,
-        uint256 _amount,
+        address token,
+        uint256 amount,
         uint64, // _srcChainId
-        bytes memory _message,
+        bytes memory message,
         address // executor
     ) external payable override onlyMessageBus returns (ExecutionStatus) {
-        PurchaseRequest memory request = abi.decode((_message), (PurchaseRequest));
-        require(_token == address(request.order.detail.currency), "invalid token type");
-        IERC20(request.order.detail.currency).transferFrom(address(this), request.receiver, _amount);
+        PurchaseRequest memory request = abi.decode((message), (PurchaseRequest));
+        IERC20(token).safeTransfer(request.receiver, amount);
+        emit Refunded(uint64(block.chainid), request.order.detail.id, token, amount);
         return ExecutionStatus.Success;
     }
 
     /**
      * @notice called on source chain for handling of bridge failures (bad liquidity, bad slippage, etc...)
-     * @param _token the token used on source chain
-     * @param _amount The amount of the transfer
-     * @param _message packed PurchaseRequest
+     * @param token the token used on source chain
+     * @param amount The amount of the transfer
+     * @param message packed PurchaseRequest
      */
     function executeMessageWithTransferRefund(
-        address _token,
-        uint256 _amount,
-        bytes calldata _message,
+        address token,
+        uint256 amount,
+        bytes calldata message,
         address // executor
     ) external payable override onlyMessageBus returns (ExecutionStatus) {
-        PurchaseRequest memory request = abi.decode((_message), (PurchaseRequest));
-        IERC20(_token).safeTransfer(request.sender, _amount);
+        PurchaseRequest memory request = abi.decode((message), (PurchaseRequest));
+        IERC20(token).safeTransfer(request.sender, amount);
+        emit Refunded(uint64(block.chainid), request.order.detail.id, token, amount);
         return ExecutionStatus.Success;
     }
 
