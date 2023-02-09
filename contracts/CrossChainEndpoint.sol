@@ -127,11 +127,6 @@ contract CrossChainEndpoint is MessageReceiverApp {
         return ExecutionStatus.Success;
     }
 
-    function refundAndDone(address token, address _receiver, uint256 amount) private returns (ExecutionStatus) {
-        IERC20(token).safeTransfer(_receiver, amount);
-        return ExecutionStatus.Success;
-    }
-
     /**
      * @notice called only if handleMessageWithTransfer was reverted (etc, NFT sold out)
      * @param token the token used on destination chain
