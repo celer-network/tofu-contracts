@@ -46,34 +46,34 @@ contract CrossChainEndpoint is MessageReceiverApp {
 
     /**
      * @notice initiates a cross-chain call the the _chainId chain
-     * @param _dstChainId the destination chain to purchase NFT on
-     * @param _dstCrossChainEndpoint the CrossChainEndpoint contract on the destination chain
-     * @param _receiver the address on destination chain to receive target NFT
-     * @param _srcToken The address of the transfer token.
+     * @param dstChainId the destination chain to purchase NFT on
+     * @param dstCrossChainEndpoint the CrossChainEndpoint contract on the destination chain
+     * @param receiver the address on destination chain to receive target NFT
+     * @param srcToken The address of the transfer token.
      * @param amount The amount of the transfer
-     * @param _maxSlippage The max slippage accepted, given as percentage in point (pip). Eg. 5000 means 0.5%.
-     * @param _order input order, accquired from the Tofu backend server
+     * @param maxSlippage The max slippage accepted, given as percentage in point (pip). Eg. 5000 means 0.5%.
+     * @param order input order, accquired from the Tofu backend server
      */
     function purchase(
-        uint64 _dstChainId,
-        address _dstCrossChainEndpoint,
-        address _receiver,
-        address _srcToken,
+        uint64 dstChainId,
+        address dstCrossChainEndpoint,
+        address receiver,
+        address srcToken,
         uint256 amount,
-        uint32 _maxSlippage,
-        Order memory _order
+        uint32 maxSlippage,
+        Order memory order
     ) external payable {
         nonce += 1;
-        require(amount >= _order.detail.price, "invalid amount");
-        IERC20(_srcToken).safeTransferFrom(msg.sender, address(this), amount);
-        bytes memory message = abi.encode(PurchaseRequest(_receiver, msg.sender, _order));
+        require(amount >= order.detail.price, "invalid amount");
+        IERC20(srcToken).safeTransferFrom(msg.sender, address(this), amount);
+        bytes memory message = abi.encode(PurchaseRequest(receiver, msg.sender, order));
         MessageSenderLib.sendMessageWithTransfer(
-            _dstCrossChainEndpoint,
-            _srcToken,
-            _order.detail.price,
-            _dstChainId,
+            dstCrossChainEndpoint,
+            srcToken,
+            amount,
+            dstChainId,
             nonce,
-            _maxSlippage,
+            maxSlippage,
             message,
             MsgDataTypes.BridgeSendType.Liquidity,
             messageBus,
@@ -117,11 +117,7 @@ contract CrossChainEndpoint is MessageReceiverApp {
         }
         // refund extra token
         if (amount > request.order.detail.price) {
-            IERC20(request.order.detail.currency).safeTransferFrom(
-                address(this),
-                request.receiver,
-                amount - request.order.detail.price
-            );
+            IERC20(request.order.detail.currency).safeTransfer(request.receiver, amount - request.order.detail.price);
         }
         emit PurchaseCompleted(request.order.detail.id);
         return ExecutionStatus.Success;
@@ -170,7 +166,12 @@ contract CrossChainEndpoint is MessageReceiverApp {
         marketNG = _marketNG;
     }
 
-    function onERC721Received(address, address, uint256, bytes memory) external pure returns (bytes4) {
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) external pure returns (bytes4) {
         // only needed this for receiving NFTs.
         return 0x150b7a02;
     }
