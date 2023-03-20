@@ -26,6 +26,14 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'hardhat',
   networks: {
+    ethMainnet: {
+      url: process.env.ETHEREUM_ENDPOINT,
+      accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
+    },
+    arbNova: {
+      url: process.env.ARBITRUM_NOVA_ENDPOINT,
+      accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
+    },
     goerli: {
       url: process.env.GOERLI_ENDPOINT,
       accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
@@ -37,8 +45,28 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      mainnet: process.env.ETHERSCAN_API_KEY || '',
+      arbNova: process.env.ARBISCAN_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || ''
-    }
+    },
+    customChains: [
+      {
+        network: 'arbNova',
+        chainId: 42170,
+        urls: {
+          apiURL: 'https://nova.arbitrum.io/rpc',
+          browserURL: 'https://nova.arbiscan.io'
+        }
+      },
+      {
+        network: 'arbGoerli',
+        chainId: 421613,
+        urls: {
+          apiURL: 'https://goerli-rollup.arbitrum.io/rpc',
+          browserURL: 'https://goerli.arbiscan.io'
+        }
+      }
+    ]
   }
 };
 

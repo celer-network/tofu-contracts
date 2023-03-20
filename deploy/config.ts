@@ -8,6 +8,16 @@ interface IChainConfig {
 }
 
 export const config: IDeployConfig = {
+  // Ethereum
+  1: {
+    MessageBus: '0x4066d196a423b2b3b8b054f4f40efb47a74e200c',
+    MarketNG: '0x7bc8b1B5AbA4dF3Be9f9A32daE501214dC0E4f3f'
+  },
+  // Arbitrum Nova
+  42170: {
+    MessageBus: '0xf5c6825015280cdfd0b56903f9f8b5a2233476f5',
+    MarketNG: '0x7bc8b1B5AbA4dF3Be9f9A32daE501214dC0E4f3f'
+  },
   // Goerli
   5: {
     MessageBus: '0xF25170F86E4291a99a9A560032Fe9948b8BcFBB2',
