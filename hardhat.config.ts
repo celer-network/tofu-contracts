@@ -34,6 +34,10 @@ const config: HardhatUserConfig = {
       url: process.env.ARBITRUM_NOVA_ENDPOINT,
       accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
     },
+    arbitrum: {
+      url: process.env.ARBITRUM_ENDPOINT,
+      accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
+    },
     goerli: {
       url: process.env.GOERLI_ENDPOINT,
       accounts: [`0x${process.env.DEFAULT_PRIVATE_KEY}`]
@@ -47,6 +51,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       arbNova: process.env.ARBISCAN_API_KEY || '',
+      arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || ''
     },
     customChains: [

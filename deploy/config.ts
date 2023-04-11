@@ -13,6 +13,11 @@ export const config: IDeployConfig = {
     MessageBus: '0x4066d196a423b2b3b8b054f4f40efb47a74e200c',
     MarketNG: '0x7bc8b1B5AbA4dF3Be9f9A32daE501214dC0E4f3f'
   },
+  // Arbitrum One
+  42161: {
+    MessageBus: '0x3ad9d0648cdaa2426331e894e980d0a5ed16257f',
+    MarketNG: '0x7bc8b1B5AbA4dF3Be9f9A32daE501214dC0E4f3f'
+  },
   // Arbitrum Nova
   42170: {
     MessageBus: '0xf5c6825015280cdfd0b56903f9f8b5a2233476f5',
